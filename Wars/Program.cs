@@ -87,6 +87,7 @@ namespace Wars
 
         public Squad(int numberSoldiersTypeFirst, int numberSoldiersTypeSecond, int numberSoldiersTypeThird, int numberSoldiersTypeFourth)
         {
+            _soldiers = new List<Soldier>();
             _typeSoldiers = new List<Soldier>()
             {
                 new FirstTypeSoldier("Обычный солдат", 100 , 25, 10,1),
@@ -94,12 +95,13 @@ namespace Wars
                 new ThirdTypeSoldier("Солдат атакует сразу нескольких", 100 , 25, 10,3),
                 new FourthTypeSoldier("Солдат атакует сразу нескольких случайных,", 100 , 25, 10,3),
             };
-            CreateSoldiers(numberSoldiersTypeFirst, numberSoldiersTypeSecond, numberSoldiersTypeThird, numberSoldiersTypeFourth);
+
+            Create(numberSoldiersTypeFirst, numberSoldiersTypeSecond, numberSoldiersTypeThird, numberSoldiersTypeFourth);
         }
 
         public void Attack(Squad squad)
         {
-            for (int i = 0; i <= _soldiers.Count; i++)
+            for (int i = 0; i < _soldiers.Count; i++)
             {
                 _soldiers[i].Attack(squad._soldiers);
             }
@@ -115,19 +117,24 @@ namespace Wars
             }
         }
 
-        private void CreateSoldiers(int numberSoldiersTypeFirst, int numberSoldiersTypeSecond, int numberSoldiersTypeThird, int numberSoldiersTypeFourth)
+        private void Create(int numberSoldiersTypeFirst, int numberSoldiersTypeSecond, int numberSoldiersTypeThird, int numberSoldiersTypeFourth)
         {
-            CreateSoldier(numberSoldiersTypeFirst, _typeSoldiers[0]);
-            CreateSoldier(numberSoldiersTypeSecond, _typeSoldiers[1]);
-            CreateSoldier(numberSoldiersTypeThird, _typeSoldiers[2]);
-            CreateSoldier(numberSoldiersTypeFourth, _typeSoldiers[3]);
+            int idFirstTypeSoldier = 0;
+            int idSecondTypeSoldier = 1;
+            int idThirdTypeSoldier = 2;
+            int idFourthTypeSoldier = 3;
+
+            CreateSoldiers(numberSoldiersTypeFirst, idFirstTypeSoldier);
+            CreateSoldiers(numberSoldiersTypeSecond, idSecondTypeSoldier);
+            CreateSoldiers(numberSoldiersTypeThird, idThirdTypeSoldier);
+            CreateSoldiers(numberSoldiersTypeFourth, idFourthTypeSoldier);
         }
 
-        private void CreateSoldier(int numberSoldier, Soldier soldier)
+        private void CreateSoldiers(int numberSoldier, int idTypeSoldier)
         {
-            for (int i = 0; i < numberSoldier; i++)
+            for (int i = 0; i <= numberSoldier; i++)
             {
-                _soldiers.Add(soldier.Clone());
+                _soldiers.Add(_typeSoldiers[idTypeSoldier].Clone());
             }
         }
     }
@@ -179,9 +186,9 @@ namespace Wars
 
     class FirstTypeSoldier : Soldier
     {
-        private Random _random;
+        private Random _random = new Random();
 
-        public FirstTypeSoldier(string name, float health, float damage, float armor, int numberTarget) : base(name, health, damage, armor, numberTarget) { }
+        public FirstTypeSoldier(string name, float health, float damage, float armor, int quantityTarget) : base(name, health, damage, armor, quantityTarget) { }
 
         public override Soldier Clone()
         {
@@ -190,6 +197,7 @@ namespace Wars
 
         public override void Attack(List<Soldier> _target)
         {
+            Console.WriteLine("Aтакуют случайного солдат во вражеском взводе.");
             _target[_random.Next(_target.Count)].TakeDamage(Damage);
         }
     }
@@ -199,7 +207,7 @@ namespace Wars
         private float _damageMultiplier;
         private float _finalDamage;
 
-        public SecondTypeSoldier(string name, float health, float damage, float armor, int numberTarget) : base(name, health, damage, armor, numberTarget)
+        public SecondTypeSoldier(string name, float health, float damage, float armor, int quantityTarget) : base(name, health, damage, armor, quantityTarget)
         {
             _damageMultiplier = 1.5f;
             _finalDamage = Damage * _damageMultiplier;
@@ -213,13 +221,14 @@ namespace Wars
 
         public override void Attack(List<Soldier> _target)
         {
+            Console.WriteLine("Aтакует только одного, но с множителем урона.");
             _target[QuantityTarget].TakeDamage(_finalDamage);
         }
     }
 
     class ThirdTypeSoldier : Soldier
     {
-        public ThirdTypeSoldier(string name, float health, float damage, float armor, int numberTarget) : base(name, health, damage, armor, numberTarget) { }
+        public ThirdTypeSoldier(string name, float health, float damage, float armor, int quantityTarget) : base(name, health, damage, armor, quantityTarget) { }
 
         public override Soldier Clone()
         {
@@ -228,7 +237,9 @@ namespace Wars
 
         public override void Attack(List<Soldier> _targets)
         {
-            for (int i = 0; i <= QuantityTarget; i++)
+            Console.WriteLine("Aтакует сразу нескольких, без повторения атакованного за свою атаку.");
+
+            for (int i = 0; i < QuantityTarget; i++)
             {
                 _targets[i].TakeDamage(Damage);
             }
@@ -237,9 +248,9 @@ namespace Wars
 
     class FourthTypeSoldier : Soldier
     {
-        private Random _random;
+        private Random _random = new Random();
 
-        public FourthTypeSoldier(string name, float health, float damage, float armor, int numberTarget) : base(name, health, damage, armor, numberTarget) { }
+        public FourthTypeSoldier(string name, float health, float damage, float armor, int quantityTarget) : base(name, health, damage, armor, quantityTarget) { }
 
         public override Soldier Clone()
         {
@@ -248,6 +259,8 @@ namespace Wars
 
         public override void Attack(List<Soldier> _targets)
         {
+            Console.WriteLine("Aтакует сразу нескольких, атакованные солдаты могут повторяться");
+
             for (int i = 0; i <= QuantityTarget; i++)
             {
                 _targets[_random.Next(_targets.Count)].TakeDamage(Damage);
