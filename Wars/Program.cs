@@ -7,7 +7,7 @@ namespace Wars
     {
         static void Main()
         {
-            ConsoleKey _exitButton = ConsoleKey.Enter;
+            ConsoleKey exitButton = ConsoleKey.Enter;
             bool isWork = true;
 
             while (isWork)
@@ -18,9 +18,9 @@ namespace Wars
 
                 battlefild.Battle();
 
-                Console.WriteLine($"\nВы хотите выйти из программы?Нажмите {_exitButton}.\nДля продолжение работы нажмите любую другую клавишу");
+                Console.WriteLine($"\nВы хотите выйти из программы?Нажмите {exitButton}.\nДля продолжение работы нажмите любую другую клавишу");
 
-                if (Console.ReadKey().Key == _exitButton)
+                if (Console.ReadKey().Key == exitButton)
                 {
                     Console.WriteLine("Вы вышли из программы");
                     isWork = false;
@@ -31,214 +31,226 @@ namespace Wars
         }
     }
 
-    interface IWeapon
-    {
-        string Name { get; }
-
-        void Attack(Unit warrior, List<Unit> targets);
-    }
-
-    class Country
-    {
-        private Squad _squad;
-
-        public Country()
-        {
-            Console.WriteLine("Введите название страны");
-            Name = Console.ReadLine();
-            Console.WriteLine("Введите количество солдат");
-            int.TryParse(Console.ReadLine(), out int numberSoldiers);
-            _squad = new Squad(numberSoldiers, Name);
-        }
-
-        public string Name { get; }
-
-        public Squad GetSquad()
-        {
-            return _squad;
-        }
-    }
-
     class Battlefild
     {
-        private int _numberFirstCountry = 0;
-        private int _numberSecondCountry = 1;
-        private List<Country> _countries = new List<Country>()
+        private List<Squad> _squads;
+        private int _firstSquad = 0;
+        private int _secondSquad = 1;
+
+        public Battlefild()
         {
-             new Country(),
-             new Country(),
-        };
+            _squads = new List<Squad>()
+            {
+                new Squad(3,2,2,4),
+                new Squad(2,2,3,1)
+            };
+        }
 
         public void Battle()
         {
-            while (_countries[_numberFirstCountry].GetSquad().IsDeadSquad != true && _countries[_numberSecondCountry].GetSquad().IsDeadSquad != true)
+            while (_squads[_firstSquad].IsAlive == _squads[_secondSquad].IsAlive)
             {
-                _countries[_numberFirstCountry].GetSquad().AttackSquad(_countries[_numberSecondCountry].GetSquad());
-                _countries[_numberSecondCountry].GetSquad().AttackSquad(_countries[_numberFirstCountry].GetSquad());
+                Console.WriteLine("Первый отряд атакует второй");
+                _squads[_firstSquad].Attack(_squads[_secondSquad]);
+                Console.WriteLine("Второй отряд атакует первый");
+                _squads[_secondSquad].Attack(_squads[_firstSquad]);
+                Console.WriteLine("Мертвых бойцов убрали с поля боя");
+                _squads[_firstSquad].RemoveDeathSoldiers();
+                _squads[_secondSquad].RemoveDeathSoldiers();
             }
 
-            ResultBattle();
+            Result();
         }
 
-        private void ResultBattle()
+        private void Result()
         {
-            if (_countries[_numberFirstCountry].GetSquad().IsDeadSquad == true & _countries[_numberSecondCountry].GetSquad().IsDeadSquad == true)
+            if (_squads[_firstSquad].IsAlive == _squads[_secondSquad].IsAlive)
             {
                 Console.WriteLine("Отряды по убивали друг друга, никто не победил");
             }
-            else if (_countries[_numberFirstCountry].GetSquad().IsDeadSquad == false & _countries[_numberSecondCountry].GetSquad().IsDeadSquad == true)
+            else if (_squads[_firstSquad].IsAlive == true & _squads[_secondSquad].IsAlive == false)
             {
-                Console.WriteLine($"Победила страна {_countries[_numberFirstCountry].Name}");
+                Console.WriteLine($"Победила Первый отряд");
             }
-            else if (_countries[_numberFirstCountry].GetSquad().IsDeadSquad == true & _countries[_numberSecondCountry].GetSquad().IsDeadSquad == false)
+            else if (_squads[_secondSquad].IsAlive & _squads[_firstSquad].IsAlive == false)
             {
-                Console.WriteLine($"Победила страна {_countries[_numberSecondCountry].Name}");
+                Console.WriteLine($"Победила Второй отряд");
             }
         }
     }
 
     class Squad
     {
-        public bool IsDeadSquad = false;
-        private List<Unit> _soldiers = new List<Unit>();
-        private List<IWeapon> _weapons = new List<IWeapon>() { new Rifle(50), new MachineGun(20) };
-        private Random _random = new Random();
+        public bool IsAlive = true;
+        private List<Soldier> _soldiers;
+        private List<Soldier> _typeSoldiers;
 
-        public Squad(int number, string name)
+        public Squad(int numberSoldiersTypeFirst, int numberSoldiersTypeSecond, int numberSoldiersTypeThird, int numberSoldiersTypeFourth)
         {
-            Number = number;
-            CreateSoldiers(number, name);
-            ShowSoldiers();
+            _typeSoldiers = new List<Soldier>()
+            {
+                new FirstTypeSoldier("Обычный солдат", 100 , 25, 10,1),
+                new SecondTypeSoldier("Солдат атакует только одного", 100 , 25, 10,0),
+                new ThirdTypeSoldier("Солдат атакует сразу нескольких", 100 , 25, 10,3),
+                new FourthTypeSoldier("Солдат атакует сразу нескольких случайных,", 100 , 25, 10,3),
+            };
+            CreateSoldiers(numberSoldiersTypeFirst, numberSoldiersTypeSecond, numberSoldiersTypeThird, numberSoldiersTypeFourth);
         }
 
-        public int Number { get; }
-
-        public void AttackSquad(Squad squad)
+        public void Attack(Squad squad)
         {
-            int numberUnitAttackSquad = _random.Next(0, _soldiers.Count);
-
-            for (int i = 0; i < numberUnitAttackSquad; i++)
+            for (int i = 0; i <= _soldiers.Count; i++)
             {
-                _soldiers[i].Attack(squad.GetSoldiers());
+                _soldiers[i].Attack(squad._soldiers);
             }
+        }
 
-            squad.RemoveDeathSoldiers();
+        public void RemoveDeathSoldiers()
+        {
+            _soldiers.RemoveAll(soldier => soldier.Health == 0);
 
             if (_soldiers.Count == 0)
             {
-                IsDeadSquad = true;
+                IsAlive = false;
             }
         }
 
-        private void ShowSoldiers()
+        private void CreateSoldiers(int numberSoldiersTypeFirst, int numberSoldiersTypeSecond, int numberSoldiersTypeThird, int numberSoldiersTypeFourth)
         {
-            foreach (var soldier in _soldiers)
+            CreateSoldier(numberSoldiersTypeFirst, _typeSoldiers[0]);
+            CreateSoldier(numberSoldiersTypeSecond, _typeSoldiers[1]);
+            CreateSoldier(numberSoldiersTypeThird, _typeSoldiers[2]);
+            CreateSoldier(numberSoldiersTypeFourth, _typeSoldiers[3]);
+        }
+
+        private void CreateSoldier(int numberSoldier, Soldier soldier)
+        {
+            for (int i = 0; i < numberSoldier; i++)
             {
-                soldier.ShowInfo();
+                _soldiers.Add(soldier.Clone());
             }
-        }
-
-        private void CreateSoldiers(int numberSoldiersSquad, string nationality)
-        {
-            for (int i = 1; i <= Number; i++)
-            {
-                _soldiers.Add(new Unit(i, numberSoldiersSquad, nationality, GiveWeapon()));
-            }
-        }
-
-        private void RemoveDeathSoldiers()
-        {
-            _soldiers.RemoveAll(soldier => soldier.Health <= 0);
-            Console.WriteLine("Убрали с поля боя мертвых солдат");
-        }
-
-        private List<Unit> GetSoldiers()
-        {
-            return _soldiers;
-        }
-
-        private IWeapon GiveWeapon()
-        {
-            int numberWeapon = _random.Next(_weapons.Count);
-            IWeapon weapon = _weapons[numberWeapon];
-            return weapon;
         }
     }
 
-    class Unit
+    abstract class Soldier
     {
-        public int Health;
+        private int _modifierDefends = 2;
 
-        public Unit(int number, int numberPlatoon, string nationality, IWeapon weapon, int health = 100)
+        public Soldier(string name, float health, float damage, float armor, int numberTarget)
         {
-            Number = number;
-            NumberSoldier = numberPlatoon;
-            Nationality = nationality;
+            Name = name;
             Health = health;
-            Weapon = weapon;
+            Damage = damage;
+            Armor = armor;
+            QuantityTarget = numberTarget;
         }
 
-        public int Number { get; private set; }
-        public int NumberSoldier { get; private set; }
-        public string Nationality { get; private set; }
-        public IWeapon Weapon { get; private set; }
+        public string Name { get; protected set; }
+        public float Health { get; protected set; }
+        public float Damage { get; protected set; }
+        public float Armor { get; protected set; }
+        public int QuantityTarget { get; protected set; }
 
-        public void ShowInfo()
+        public void TakeDamage(float damage)
         {
-            Console.WriteLine($"Национальность - {Nationality}, номер солдата - {Number}, вооруженме -{Weapon.Name}, здоровье - {Health}");
+            float armor = damage / _modifierDefends;
+
+            if (Armor <= armor)
+            {
+                Armor = 0;
+
+                if (Health <= damage)
+                {
+                    damage = Health;
+                }
+
+                Health -= damage;
+            }
+            else
+            {
+                Armor -= armor;
+            }
         }
 
-        public void Attack(List<Unit> targets)
+        public abstract Soldier Clone();
+
+        public virtual void Attack(List<Soldier> _target) { }
+    }
+
+    class FirstTypeSoldier : Soldier
+    {
+        private Random _random;
+
+        public FirstTypeSoldier(string name, float health, float damage, float armor, int numberTarget) : base(name, health, damage, armor, numberTarget) { }
+
+        public override Soldier Clone()
         {
-            Weapon.Attack(this, targets);
+            return new FirstTypeSoldier(Name, Health, Damage, Armor, QuantityTarget);
+        }
+
+        public override void Attack(List<Soldier> _target)
+        {
+            _target[_random.Next(_target.Count)].TakeDamage(Damage);
         }
     }
 
-    class Rifle : IWeapon
+    class SecondTypeSoldier : Soldier
     {
-        private int _damage;
+        private float _damageMultiplier;
+        private float _finalDamage;
 
-        public Rifle(int damage)
+        public SecondTypeSoldier(string name, float health, float damage, float armor, int numberTarget) : base(name, health, damage, armor, numberTarget)
         {
-            _damage = damage;
+            _damageMultiplier = 1.5f;
+            _finalDamage = Damage * _damageMultiplier;
+            QuantityTarget = 0;
         }
 
-        string IWeapon.Name { get { return "Винтовка"; } }
-
-        public void Attack(Unit soldier, List<Unit> targets)
+        public override Soldier Clone()
         {
-            foreach (Unit target in targets)
+            return new SecondTypeSoldier(Name, Health, Damage, Armor, QuantityTarget);
+        }
+
+        public override void Attack(List<Soldier> _target)
+        {
+            _target[QuantityTarget].TakeDamage(_finalDamage);
+        }
+    }
+
+    class ThirdTypeSoldier : Soldier
+    {
+        public ThirdTypeSoldier(string name, float health, float damage, float armor, int numberTarget) : base(name, health, damage, armor, numberTarget) { }
+
+        public override Soldier Clone()
+        {
+            return new ThirdTypeSoldier(Name, Health, Damage, Armor, QuantityTarget);
+        }
+
+        public override void Attack(List<Soldier> _targets)
+        {
+            for (int i = 0; i <= QuantityTarget; i++)
             {
-                if (targets != null)
-                {
-                    target.Health -= _damage;
-                    soldier.ShowInfo();
-                    Console.Write($"Атаковал солдата на - {_damage} - ");
-                    target.ShowInfo();
-                }
+                _targets[i].TakeDamage(Damage);
             }
         }
     }
 
-    class MachineGun : IWeapon
+    class FourthTypeSoldier : Soldier
     {
-        private int _damage;
+        private Random _random;
 
-        public MachineGun(int damage)
+        public FourthTypeSoldier(string name, float health, float damage, float armor, int numberTarget) : base(name, health, damage, armor, numberTarget) { }
+
+        public override Soldier Clone()
         {
-            _damage = damage;
+            return new FourthTypeSoldier(Name, Health, Damage, Armor, QuantityTarget);
         }
 
-        string IWeapon.Name { get { return "Пулемёт"; } }
-
-        public void Attack(Unit warrior, List<Unit> targets)
+        public override void Attack(List<Soldier> _targets)
         {
-            var rifle = new Rifle(_damage);
-            int maximumTargets = 3;
-
-            for (var i = 0; i < maximumTargets; i++)
+            for (int i = 0; i <= QuantityTarget; i++)
             {
-                rifle.Attack(warrior, targets);
+                _targets[_random.Next(_targets.Count)].TakeDamage(Damage);
             }
         }
     }
