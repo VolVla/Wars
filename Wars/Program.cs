@@ -33,30 +33,26 @@ namespace Wars
 
     class Battlefild
     {
-        private List<Squad> _squads;
-        private int _firstSquad = 0;
-        private int _secondSquad = 1;
+        private Squad _firstSquad;
+        private Squad _secondSquad;
 
         public Battlefild()
         {
-            _squads = new List<Squad>()
-            {
-                new Squad(3,2,2,4),
-                new Squad(2,2,3,1)
-            };
+            _firstSquad = new Squad(new List<int> { 3, 2, 1, 4 });
+            _secondSquad = new Squad(new List<int> { 2, 2, 3, 1 });
         }
 
         public void Battle()
         {
-            while (_squads[_firstSquad].IsAlive == _squads[_secondSquad].IsAlive)
+            while (_firstSquad.IsAlive == _secondSquad.IsAlive)
             {
                 Console.WriteLine("Первый отряд атакует второй");
-                _squads[_firstSquad].Attack(_squads[_secondSquad]);
+                _firstSquad.Attack(_secondSquad);
                 Console.WriteLine("Второй отряд атакует первый");
-                _squads[_secondSquad].Attack(_squads[_firstSquad]);
+                _secondSquad.Attack(_firstSquad);
                 Console.WriteLine("Мертвых бойцов убрали с поля боя");
-                _squads[_firstSquad].RemoveDeathSoldiers();
-                _squads[_secondSquad].RemoveDeathSoldiers();
+                _firstSquad.RemoveDeathSoldiers();
+                _secondSquad.RemoveDeathSoldiers();
             }
 
             Result();
@@ -64,15 +60,15 @@ namespace Wars
 
         private void Result()
         {
-            if (_squads[_firstSquad].IsAlive == _squads[_secondSquad].IsAlive)
+            if (_firstSquad.IsAlive == _secondSquad.IsAlive)
             {
                 Console.WriteLine("Отряды по убивали друг друга, никто не победил");
             }
-            else if (_squads[_firstSquad].IsAlive == true & _squads[_secondSquad].IsAlive == false)
+            else if (_firstSquad.IsAlive == true & _secondSquad.IsAlive == false)
             {
                 Console.WriteLine($"Победила Первый отряд");
             }
-            else if (_squads[_secondSquad].IsAlive & _squads[_firstSquad].IsAlive == false)
+            else if (_secondSquad.IsAlive & _firstSquad.IsAlive == false)
             {
                 Console.WriteLine($"Победила Второй отряд");
             }
@@ -85,7 +81,7 @@ namespace Wars
         private List<Soldier> _soldiers;
         private List<Soldier> _typeSoldiers;
 
-        public Squad(int numberSoldiersTypeFirst, int numberSoldiersTypeSecond, int numberSoldiersTypeThird, int numberSoldiersTypeFourth)
+        public Squad(List<int> numberSoldiers)
         {
             _soldiers = new List<Soldier>();
             _typeSoldiers = new List<Soldier>()
@@ -95,8 +91,7 @@ namespace Wars
                 new ThirdTypeSoldier("Солдат атакует сразу нескольких", 100 , 25, 10,3),
                 new FourthTypeSoldier("Солдат атакует сразу нескольких случайных,", 100 , 25, 10,3),
             };
-
-            Create(numberSoldiersTypeFirst, numberSoldiersTypeSecond, numberSoldiersTypeThird, numberSoldiersTypeFourth);
+            Create(numberSoldiers);
         }
 
         public void Attack(Squad squad)
@@ -117,17 +112,12 @@ namespace Wars
             }
         }
 
-        private void Create(int numberSoldiersTypeFirst, int numberSoldiersTypeSecond, int numberSoldiersTypeThird, int numberSoldiersTypeFourth)
+        private void Create(List<int> numberSoldiers)
         {
-            int idFirstTypeSoldier = 0;
-            int idSecondTypeSoldier = 1;
-            int idThirdTypeSoldier = 2;
-            int idFourthTypeSoldier = 3;
-
-            CreateSoldiers(numberSoldiersTypeFirst, idFirstTypeSoldier);
-            CreateSoldiers(numberSoldiersTypeSecond, idSecondTypeSoldier);
-            CreateSoldiers(numberSoldiersTypeThird, idThirdTypeSoldier);
-            CreateSoldiers(numberSoldiersTypeFourth, idFourthTypeSoldier);
+            for (int i = 0; i < _typeSoldiers.Count; i++)
+            {
+                CreateSoldiers(numberSoldiers[i], i);
+            }
         }
 
         private void CreateSoldiers(int numberSoldier, int idTypeSoldier)
@@ -184,9 +174,19 @@ namespace Wars
         public virtual void Attack(List<Soldier> _target) { }
     }
 
+    class Utils
+    {
+        private static Random _random = new Random();
+
+        public Random GetRandom()
+        {
+            return _random;
+        }
+    }
+
     class FirstTypeSoldier : Soldier
     {
-        private Random _random = new Random();
+        private Utils _utils = new Utils();
 
         public FirstTypeSoldier(string name, float health, float damage, float armor, int quantityTarget) : base(name, health, damage, armor, quantityTarget) { }
 
@@ -198,7 +198,7 @@ namespace Wars
         public override void Attack(List<Soldier> _target)
         {
             Console.WriteLine("Aтакуют случайного солдат во вражеском взводе.");
-            _target[_random.Next(_target.Count)].TakeDamage(Damage);
+            _target[_utils.GetRandom().Next(_target.Count)].TakeDamage(Damage);
         }
     }
 
@@ -248,7 +248,7 @@ namespace Wars
 
     class FourthTypeSoldier : Soldier
     {
-        private Random _random = new Random();
+        private Utils _utils = new Utils();
 
         public FourthTypeSoldier(string name, float health, float damage, float armor, int quantityTarget) : base(name, health, damage, armor, quantityTarget) { }
 
@@ -263,7 +263,7 @@ namespace Wars
 
             for (int i = 0; i <= QuantityTarget; i++)
             {
-                _targets[_random.Next(_targets.Count)].TakeDamage(Damage);
+                _targets[_utils.GetRandom().Next(_targets.Count)].TakeDamage(Damage);
             }
         }
     }
