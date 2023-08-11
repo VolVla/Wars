@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Wars
 {
@@ -136,31 +137,29 @@ namespace Wars
 
     class Squad
     {
-        protected const string SNIPER = "Снайпер";
-        protected const string TANK = "Танк";
-        protected const string ARTELERIST = "Артилерист";
-        protected const string ARNOREDVEHICLE = "БТР";
-        protected const string INFANTRY = "Пехотинец";
-        protected const string SAPPER = "Сапер";
+        private const string SNIPER = "Снайпер";
+        private const string TANK = "Танк";
+        private const string ARTELERIST = "Артилерист";
+        private const string ARNOREDVEHICLE = "БТР";
+        private const string INFANTRY = "Пехотинец";
+        private const string SAPPER = "Сапер";
         public bool IsLiveSquad;
-        public List<CombatUnits> UnitSquad;
+        public List<CombatUnits> UnitSquad = new List<CombatUnits>();
         private bool _isCorrectCreateSquad;
         private ConsoleKey _key;
-        private List<CombatUnits> _listCombatUnits;
+        private List<CombatUnits> _listCombatUnits = new List<CombatUnits>();
 
         public Squad()
         {
             IsLiveSquad = true;
-            UnitSquad = new List<CombatUnits>();
-            _listCombatUnits = new List<CombatUnits>();
             _isCorrectCreateSquad = false;
             _key = ConsoleKey.F;
-            _listCombatUnits.Add(new ArmoredVehicle(ARNOREDVEHICLE, 160, 60, 120, 5, true, 2,false,0));
-            _listCombatUnits.Add(new Infantry(INFANTRY, 50, 30, 50, 5, true, 2, false, 0));
-            _listCombatUnits.Add(new Sapper(SAPPER, 60, 20, 40, 5, true, 1, false, 0));
-            _listCombatUnits.Add(new Sniper(SNIPER, 40, 100, 10, 5, true, 4, false, 0));
-            _listCombatUnits.Add(new Tank(TANK, 200, 80, 200, 5, true, 3, false, 0));
-            _listCombatUnits.Add(new Artelerist(ARTELERIST, 100, 200, 10, 5, true, 5, false, 0));
+            _listCombatUnits.Add(new ArmoredVehicle(ARNOREDVEHICLE, 160, 35, 120, 5, true, 2, 0));
+            _listCombatUnits.Add(new Infantry(INFANTRY, 50, 30, 50, 5, true, 2, 0));
+            _listCombatUnits.Add(new Sapper(SAPPER, 60, 20, 40, 5, true, 1, 0));
+            _listCombatUnits.Add(new Sniper(SNIPER, 40, 10, 10, 5, true, 4, 0));
+            _listCombatUnits.Add(new Tank(TANK, 200, 45, 200, 5, true, 3, 0));
+            _listCombatUnits.Add(new Artelerist(ARTELERIST, 100, 20, 10, 5, true, 5, 0));
         }
 
         public string NameSquad { get; private set; }
@@ -208,9 +207,16 @@ namespace Wars
         }
     }
 
-    abstract class CombatUnits : Squad
+    abstract class CombatUnits
     {
-        public CombatUnits(string name, float health, float damage, float armor, int distance, bool isLive, int distanceAttackUnit,bool isStand, int standCoin)
+        protected const string SNIPER = "Снайпер";
+        protected const string TANK = "Танк";
+        protected const string ARTELERIST = "Артилерист";
+        protected const string ARNOREDVEHICLE = "БТР";
+        protected const string INFANTRY = "Пехотинец";
+        protected const string SAPPER = "Сапер";
+
+        public CombatUnits(string name, float health, float damage, float armor, int distance, bool isLive, int distanceAttackUnit, int standCoin)
         {
             Name = name;
             Health = health;
@@ -219,7 +225,6 @@ namespace Wars
             Distance = distance;
             IsLive = isLive;
             DistanceAttackUnit = distanceAttackUnit;
-            IsStand = isStand;
             TimeStandPoint = standCoin;
         }
 
@@ -299,7 +304,7 @@ namespace Wars
                     Distance--;
                 }
             }
-            else if (TimeStandPoint > 0) 
+            else if (TimeStandPoint > 0)
             {
                 TimeStandPoint--;
             }
@@ -314,13 +319,13 @@ namespace Wars
         public bool SuccessfukApplicationSkillAttack()
         {
             bool isSuccessful = false;
-            int minimum = 0; 
+            int minimum = 0;
             int maximum = 2;
             int number;
             Random random = new Random();
             number = random.Next(minimum, maximum);
 
-            if (number == minimum) 
+            if (number == minimum)
             {
                 isSuccessful = false;
             }
@@ -340,7 +345,7 @@ namespace Wars
         {
             if (Health <= 0)
             {
-                Distance--;
+                IsLive = false;
             }
         }
     }
@@ -350,11 +355,11 @@ namespace Wars
         private int _debaffArmor = 10;
         private int _timeStandEnemyUnit = 1;
 
-        public Sniper(string name, float health, float damage, float armor, int distance, bool isLive, int distanceAttackUnit, bool isStand,int timeStandPoint) : base(name, health, damage, armor, distance, isLive, distanceAttackUnit, isStand, timeStandPoint) { }
+        public Sniper(string name, float health, float damage, float armor, int distance, bool isLive, int distanceAttackUnit, int timeStandPoint) : base(name, health, damage, armor, distance, isLive, distanceAttackUnit, timeStandPoint) { }
 
         public override CombatUnits Clone()
         {
-            return new Sniper(Name, Health, Damage, Armor, Distance, IsLive, DistanceAttackUnit, IsStand, TimeStandPoint);
+            return new Sniper(Name, Health, Damage, Armor, Distance, IsLive, DistanceAttackUnit, TimeStandPoint);
         }
 
         protected override void Attack(CombatUnits unit)
@@ -362,8 +367,8 @@ namespace Wars
             switch (unit.Name)
             {
                 case SNIPER:
-                    if(SuccessfukApplicationSkillAttack()) 
-                       SpellAttackRangeUnit(unit);
+                    if (SuccessfukApplicationSkillAttack())
+                        SpellAttackRangeUnit(unit);
                     break;
                 case TANK:
                     if (SuccessfukApplicationSkillAttack())
@@ -374,7 +379,7 @@ namespace Wars
                         SpellAttackMeleUnit(unit);
                     break;
                 default:
-                    unit.CauseDamage(this);
+                    MoveUnit();
                     break;
             }
         }
@@ -394,17 +399,17 @@ namespace Wars
     {
         private float _bonusDamage = 20;
         private float _baseDamage;
-        private int _timeUseSkill = 2 ;
+        private int _timeUseSkill = 2;
         private int _temporaryCoinUseSkill = 0;
 
-        public Tank(string name, float health, float damage, float armor, int distance, bool isLive, int distanceAttackUnit, bool isStand, int timeStandPoint) : base(name, health, damage, armor, distance, isLive, distanceAttackUnit,isStand, timeStandPoint) 
+        public Tank(string name, float health, float damage, float armor, int distance, bool isLive, int distanceAttackUnit, int timeStandPoint) : base(name, health, damage, armor, distance, isLive, distanceAttackUnit, timeStandPoint)
         {
             _baseDamage = Damage;
         }
 
         public override CombatUnits Clone()
         {
-            return new Tank(Name, Health, Damage, Armor, Distance, IsLive, DistanceAttackUnit,IsStand,TimeStandPoint);
+            return new Tank(Name, Health, Damage, Armor, Distance, IsLive, DistanceAttackUnit, TimeStandPoint);
         }
 
         protected override void Attack(CombatUnits unit)
@@ -441,7 +446,7 @@ namespace Wars
             {
                 Damage = _baseDamage;
                 _temporaryCoinUseSkill++;
-            } 
+            }
         }
 
         private void SpellAttackRangeUnit()
@@ -458,11 +463,11 @@ namespace Wars
         private int _hitShootEnemy = 2;
         private Random random = new Random();
 
-        public Artelerist(string name, float health, float damage, float armor, int distance, bool isLive, int distanceAttackUnit, bool isStand, int timeStandPoint) : base(name, health, damage, armor, distance, isLive, distanceAttackUnit, isStand, timeStandPoint) { }
+        public Artelerist(string name, float health, float damage, float armor, int distance, bool isLive, int distanceAttackUnit, int timeStandPoint) : base(name, health, damage, armor, distance, isLive, distanceAttackUnit, timeStandPoint) { }
 
         public override CombatUnits Clone()
         {
-            return new Artelerist(Name, Health, Damage, Armor, Distance, IsLive, DistanceAttackUnit,IsStand,TimeStandPoint);
+            return new Artelerist(Name, Health, Damage, Armor, Distance, IsLive, DistanceAttackUnit, TimeStandPoint);
         }
 
         protected override void Attack(CombatUnits unit)
@@ -482,7 +487,7 @@ namespace Wars
                         SpellAttackMeleUnit(unit);
                     break;
                 default:
-                    unit.CauseDamage(this);
+                    MoveUnit();
                     break;
             }
         }
@@ -504,11 +509,11 @@ namespace Wars
         private int _coinUpDistanceAttack = 0;
         private int _timeStandPoint = 2;
 
-        public Infantry(string name, float health, float damage, float armor, int distance, bool isLive, int distanceAttackUnit, bool isStand, int timeStandPoint) : base(name, health, damage, armor, distance, isLive, distanceAttackUnit,isStand, timeStandPoint) {}
+        public Infantry(string name, float health, float damage, float armor, int distance, bool isLive, int distanceAttackUnit, int timeStandPoint) : base(name, health, damage, armor, distance, isLive, distanceAttackUnit, timeStandPoint) { }
 
         public override CombatUnits Clone()
         {
-            return new Infantry(Name, Health, Damage, Armor, Distance, IsLive, DistanceAttackUnit,IsStand,TimeStandPoint);
+            return new Infantry(Name, Health, Damage, Armor, Distance, IsLive, DistanceAttackUnit, TimeStandPoint);
         }
 
         protected override void Attack(CombatUnits unit)
@@ -558,11 +563,11 @@ namespace Wars
         private float _buffArmor = 10;
         private int _minimumCoinUseSkill = 0;
 
-        public ArmoredVehicle(string name, float health, float damage, float armor, int distance, bool isLive, int distanceAttackUnit, bool isStand,int timeStandPoint) : base(name, health, damage, armor, distance, isLive, distanceAttackUnit,isStand, timeStandPoint) { }
+        public ArmoredVehicle(string name, float health, float damage, float armor, int distance, bool isLive, int distanceAttackUnit, int timeStandPoint) : base(name, health, damage, armor, distance, isLive, distanceAttackUnit, timeStandPoint) { }
 
         public override CombatUnits Clone()
         {
-            return new ArmoredVehicle(Name, Health, Damage, Armor, Distance, IsLive, DistanceAttackUnit,IsStand, TimeStandPoint);
+            return new ArmoredVehicle(Name, Health, Damage, Armor, Distance, IsLive, DistanceAttackUnit, TimeStandPoint);
         }
 
         protected override void Attack(CombatUnits unit)
@@ -589,7 +594,7 @@ namespace Wars
 
         private void SpellAttackMeleUnit()
         {
-            if(_amountOfCoinUseSkill > _minimumCoinUseSkill)
+            if (_amountOfCoinUseSkill > _minimumCoinUseSkill)
             {
                 Console.WriteLine("Скорость наше все пока мы едем броня увеличена");
                 MoveUnit();
@@ -603,11 +608,11 @@ namespace Wars
         private float _bonusDamageAttack = 20;
         private float _debafResistence = 10;
 
-        public Sapper(string name, float health, float damage, float armor, int distance, bool isLive, int distanceAttackUnit, bool isStand,int timeStandPoint) : base(name, health, damage, armor, distance, isLive, distanceAttackUnit,isStand, timeStandPoint) { }
+        public Sapper(string name, float health, float damage, float armor, int distance, bool isLive, int distanceAttackUnit, int timeStandPoint) : base(name, health, damage, armor, distance, isLive, distanceAttackUnit, timeStandPoint) { }
 
         public override CombatUnits Clone()
         {
-            return new Sapper(Name, Health, Damage, Armor, Distance, IsLive, DistanceAttackUnit,IsStand, TimeStandPoint);
+            return new Sapper(Name, Health, Damage, Armor, Distance, IsLive, DistanceAttackUnit, TimeStandPoint);
         }
 
         protected override void Attack(CombatUnits unit)
@@ -634,7 +639,7 @@ namespace Wars
 
         private void SpellAttackMeleUnit(CombatUnits unit)
         {
-            if(Distance == unit.DistanceAttackUnit)
+            if (Distance == unit.DistanceAttackUnit)
             {
                 Console.WriteLine("Враг на дистанции атаки, достаем гранатомёт и атакуем.Сопротивление врага уменьшилась, а наносимый урон увеличился");
                 unit.DebafResistence(_debafResistence);
