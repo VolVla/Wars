@@ -17,7 +17,7 @@ namespace Wars
                 Console.WriteLine("Для начало сражения нажмите на любую клавишу");
                 Console.ReadKey();
                 Console.Clear();
-                battleArena.TryCreativeBattle();
+                battleArena.CreativeBattle();
                 battleArena.Battle();
                 Console.WriteLine($"\nВы хотите выйти из программы?Нажмите {exitButton}.\nДля продолжение работы нажмите любую другую клавишу");
 
@@ -32,6 +32,16 @@ namespace Wars
         }
     }
 
+    enum NameUnits
+    {
+        Снайпер,
+        Танк,
+        Артилерист,
+        БТР,
+        Пехотинец,
+        Сапер
+    }
+
     class BattelField
     {
         private Squad _firstSquad;
@@ -43,14 +53,14 @@ namespace Wars
             _secondSquad = new Squad();
         }
 
-        public void TryCreativeBattle()
+        public void CreativeBattle()
         {
-            _firstSquad.CreativeSquad();
-            _secondSquad.CreativeSquad();
-            Console.WriteLine(_firstSquad.NameSquad);
-            _firstSquad.ShowUnits(_firstSquad.UnitSquad);
-            Console.WriteLine($"\n{_secondSquad.NameSquad}");
-            _secondSquad.ShowUnits(_secondSquad.UnitSquad);
+            _firstSquad.RecruitmentUnit();
+            _secondSquad.RecruitmentUnit();
+            Console.WriteLine(_firstSquad.Name);
+            _firstSquad.ShowUnits(_firstSquad.Units);
+            Console.WriteLine($"\n{_secondSquad.Name}");
+            _secondSquad.ShowUnits(_secondSquad.Units);
             Console.WriteLine("\nДля начала сражение нажмите любую кнопку");
             Console.ReadKey();
             Console.Clear();
@@ -64,15 +74,15 @@ namespace Wars
 
         private void AnnounceWinner()
         {
-            if (_firstSquad.UnitSquad.Count == 0)
+            if (_firstSquad.Units.Count == 0)
             {
-                Console.WriteLine($"Победил {_secondSquad.NameSquad} отряд !");
+                Console.WriteLine($"Победил {_secondSquad.Name} отряд !");
             }
-            else if (_secondSquad.UnitSquad.Count == 0)
+            else if (_secondSquad.Units.Count == 0)
             {
-                Console.WriteLine($"Победил {_firstSquad.NameSquad} отряд !");
+                Console.WriteLine($"Победил {_firstSquad.Name} отряд !");
             }
-            else if (_firstSquad.UnitSquad.Count == 0 && _secondSquad.UnitSquad.Count == 0)
+            else if (_firstSquad.Units.Count == 0 && _secondSquad.Units.Count == 0)
             {
                 Console.WriteLine("Поздравляю отряды двух стран убили друг друга, никто не победил и все проиграли");
             }
@@ -80,8 +90,8 @@ namespace Wars
 
         private void AttackSquad()
         {
-            List<CombatUnits> firstSquad = _firstSquad.UnitSquad;
-            List<CombatUnits> secondSquad = _secondSquad.UnitSquad;
+            List<CombatUnit> firstSquad = _firstSquad.Units;
+            List<CombatUnit> secondSquad = _secondSquad.Units;
 
             while (firstSquad.Count > 0 && secondSquad.Count > 0)
             {
@@ -90,7 +100,7 @@ namespace Wars
             }
         }
 
-        private void BattleSquads(List<CombatUnits> _attackSquad, List<CombatUnits> _defendSquad)
+        private void BattleSquads(List<CombatUnit> _attackSquad, List<CombatUnit> _defendSquad)
         {
             int firstDefender = 0;
 
@@ -100,21 +110,21 @@ namespace Wars
                 {
                     if (i >= _defendSquad.Count)
                     {
-                        CheckDistanceAttackUnit(_attackSquad, _defendSquad, i, firstDefender);
+                        UnitAttackRange(_attackSquad, _defendSquad, i, firstDefender);
                     }
                     else
                     {
-                        CheckDistanceAttackUnit(_attackSquad, _defendSquad, i, i);
+                        UnitAttackRange(_attackSquad, _defendSquad, i, i);
                     }
                 }
                 else if (_attackSquad.Count < _defendSquad.Count)
                 {
-                    CheckDistanceAttackUnit(_attackSquad, _defendSquad, i, i);
+                    UnitAttackRange(_attackSquad, _defendSquad, i, i);
                 }
             }
         }
 
-        private void CheckDistanceAttackUnit(List<CombatUnits> _attackSquad, List<CombatUnits> _defendSquad, int idUnit, int temporary)
+        private void UnitAttackRange(List<CombatUnit> _attackSquad, List<CombatUnit> _defendSquad, int idUnit, int temporary)
         {
             if (_defendSquad.Count != 0)
             {
@@ -137,34 +147,26 @@ namespace Wars
 
     class Squad
     {
-        private const string SNIPER = "Снайпер";
-        private const string TANK = "Танк";
-        private const string ARTELERIST = "Артилерист";
-        private const string ARNOREDVEHICLE = "БТР";
-        private const string INFANTRY = "Пехотинец";
-        private const string SAPPER = "Сапер";
-        public bool IsLiveSquad;
-        public List<CombatUnits> UnitSquad = new List<CombatUnits>();
-        private bool _isCorrectCreateSquad;
+        public List<CombatUnit> Units = new List<CombatUnit>();
+        private bool _isCorrectCreate;
         private ConsoleKey _key;
-        private List<CombatUnits> _listCombatUnits = new List<CombatUnits>();
+        private List<CombatUnit> _listCombatUnits = new List<CombatUnit>();
 
         public Squad()
         {
-            IsLiveSquad = true;
-            _isCorrectCreateSquad = false;
+            _isCorrectCreate = false;
             _key = ConsoleKey.F;
-            _listCombatUnits.Add(new ArmoredVehicle(ARNOREDVEHICLE, 160, 35, 120, 5, true, 2, 0));
-            _listCombatUnits.Add(new Infantry(INFANTRY, 50, 30, 50, 5, true, 2, 0));
-            _listCombatUnits.Add(new Sapper(SAPPER, 60, 20, 40, 5, true, 1, 0));
-            _listCombatUnits.Add(new Sniper(SNIPER, 40, 10, 10, 5, true, 4, 0));
-            _listCombatUnits.Add(new Tank(TANK, 200, 45, 200, 5, true, 3, 0));
-            _listCombatUnits.Add(new Artelerist(ARTELERIST, 100, 20, 10, 5, true, 5, 0));
+            _listCombatUnits.Add(new ArmoredVehicle(Wars.NameUnits.БТР, 160, 35, 120, 5, true, 2, 0));
+            _listCombatUnits.Add(new Infantry(Wars.NameUnits.Пехотинец, 50, 30, 50, 5, true, 2, 0));
+            _listCombatUnits.Add(new Sapper(Wars.NameUnits.Сапер, 60, 20, 40, 5, true, 1, 0));
+            _listCombatUnits.Add(new Sniper(Wars.NameUnits.Снайпер, 40, 10, 10, 5, true, 4, 0));
+            _listCombatUnits.Add(new Tank(Wars.NameUnits.Танк, 200, 45, 200, 5, true, 3, 0));
+            _listCombatUnits.Add(new Artelerist(Wars.NameUnits.Артилерист, 100, 20, 10, 5, true, 5, 0));
         }
 
-        public string NameSquad { get; private set; }
+        public string Name { get; private set; }
 
-        public void ShowUnits(List<CombatUnits> _unitsSquad)
+        public void ShowUnits(List<CombatUnit> _unitsSquad)
         {
             for (int i = 0; i < _unitsSquad.Count; i++)
             {
@@ -172,12 +174,12 @@ namespace Wars
             }
         }
 
-        public void CreativeSquad()
+        public void RecruitmentUnit()
         {
             Console.WriteLine("Перед созданием отряда придумайте ему пафосное название");
-            NameSquad = Console.ReadLine();
+            Name = Console.ReadLine();
 
-            while (_isCorrectCreateSquad == false)
+            while (_isCorrectCreate == false)
             {
                 Console.WriteLine("Добро пожаловать в создание отряда, выберете бойца который пресоединиться к вашему отряду");
                 ShowUnits(_listCombatUnits);
@@ -190,14 +192,14 @@ namespace Wars
                 else if (inputID > 0 && inputID - 1 < _listCombatUnits.Count)
                 {
                     Console.WriteLine("Солдат успешно выбран.");
-                    UnitSquad.Add(_listCombatUnits[inputID - 1].Clone());
+                    Units.Add(_listCombatUnits[inputID - 1].Clone());
                 }
 
                 Console.WriteLine($"Что бы закончить выбор  бойцов нажмите на {_key}, иначе любую кнопку");
 
                 if (Console.ReadKey().Key == _key)
                 {
-                    _isCorrectCreateSquad = true;
+                    _isCorrectCreate = true;
                 }
 
                 Console.Clear();
@@ -207,16 +209,12 @@ namespace Wars
         }
     }
 
-    abstract class CombatUnits
+    abstract class CombatUnit
     {
-        protected const string SNIPER = "Снайпер";
-        protected const string TANK = "Танк";
-        protected const string ARTELERIST = "Артилерист";
-        protected const string ARNOREDVEHICLE = "БТР";
-        protected const string INFANTRY = "Пехотинец";
-        protected const string SAPPER = "Сапер";
+        protected int TimeStandPoint;
+        private float DamageResistence;
 
-        public CombatUnits(string name, float health, float damage, float armor, int distance, bool isLive, int distanceAttackUnit, int standCoin)
+        public CombatUnit(Enum name, float health, float damage, float armor, int distance, bool isLive, int distanceAttackUnit, int standCoin)
         {
             Name = name;
             Health = health;
@@ -228,20 +226,19 @@ namespace Wars
             TimeStandPoint = standCoin;
         }
 
-        public bool IsStand { get; private set; }
-        public bool IsLive { get; protected set; }
-        public int TimeStandPoint { get; protected set; }
+        public Enum Name { get; private set; }
+        public bool IsLive { get; private set; }
         public int DistanceAttackUnit { get; private set; }
         public int Distance { get; private set; }
-        public float Health { get; protected set; }
+        public float Health { get; private set; }
         public float Armor { get; protected set; }
         public float Damage { get; protected set; }
-        public float DamageResistence { get; protected set; }
-        public string Name { get; protected set; }
 
-        public void CauseDamage(CombatUnits unit)
+        public void CauseDamage(CombatUnit unit)
         {
             float finalDamage = 0;
+            float finalArmor = Armor * DamageResistence;
+
             unit.Attack(this);
 
             if (Armor <= 0)
@@ -249,15 +246,15 @@ namespace Wars
                 finalDamage = unit.Damage;
                 Health -= finalDamage;
             }
-            else if (unit.Damage >= (Armor * DamageResistence))
+            else if (unit.Damage >= finalArmor)
             {
-                finalDamage = unit.Damage - (Armor * DamageResistence);
+                finalDamage = unit.Damage - finalArmor;
                 Armor = 0;
                 Health -= finalDamage;
             }
-            else if (unit.Damage < (Armor * DamageResistence))
+            else if (unit.Damage < finalArmor)
             {
-                finalDamage = unit.Damage - (Armor * DamageResistence);
+                finalDamage = unit.Damage - finalArmor;
                 Armor -= finalDamage;
             }
 
@@ -337,9 +334,9 @@ namespace Wars
             return isSuccessful;
         }
 
-        public abstract CombatUnits Clone();
+        public abstract CombatUnit Clone();
 
-        protected virtual void Attack(CombatUnits unit) { }
+        protected virtual void Attack(CombatUnit unit) { }
 
         private void CheckDeath()
         {
@@ -350,31 +347,31 @@ namespace Wars
         }
     }
 
-    class Sniper : CombatUnits
+    class Sniper : CombatUnit
     {
         private int _debaffArmor = 10;
         private int _timeStandEnemyUnit = 1;
 
-        public Sniper(string name, float health, float damage, float armor, int distance, bool isLive, int distanceAttackUnit, int timeStandPoint) : base(name, health, damage, armor, distance, isLive, distanceAttackUnit, timeStandPoint) { }
+        public Sniper(Enum name, float health, float damage, float armor, int distance, bool isLive, int distanceAttackUnit, int timeStandPoint) : base(name, health, damage, armor, distance, isLive, distanceAttackUnit, timeStandPoint) { }
 
-        public override CombatUnits Clone()
+        public override CombatUnit Clone()
         {
             return new Sniper(Name, Health, Damage, Armor, Distance, IsLive, DistanceAttackUnit, TimeStandPoint);
         }
 
-        protected override void Attack(CombatUnits unit)
+        protected override void Attack(CombatUnit unit)
         {
             switch (unit.Name)
             {
-                case SNIPER:
+                case NameUnits.Снайпер:
                     if (SuccessfukApplicationSkillAttack())
                         SpellAttackRangeUnit(unit);
                     break;
-                case TANK:
+                case NameUnits.Танк:
                     if (SuccessfukApplicationSkillAttack())
                         SpellAttackMeleUnit(unit);
                     break;
-                case INFANTRY:
+                case NameUnits.Пехотинец:
                     if (SuccessfukApplicationSkillAttack())
                         SpellAttackMeleUnit(unit);
                     break;
@@ -384,47 +381,47 @@ namespace Wars
             }
         }
 
-        private void SpellAttackMeleUnit(CombatUnits unit)
+        private void SpellAttackMeleUnit(CombatUnit unit)
         {
             unit.UpTimeStandPoint(_timeStandEnemyUnit);
         }
 
-        private void SpellAttackRangeUnit(CombatUnits unit)
+        private void SpellAttackRangeUnit(CombatUnit unit)
         {
             unit.DebafResistence(_debaffArmor);
         }
     }
 
-    class Tank : CombatUnits
+    class Tank : CombatUnit
     {
         private float _bonusDamage = 20;
         private float _baseDamage;
         private int _timeUseSkill = 2;
         private int _temporaryCoinUseSkill = 0;
 
-        public Tank(string name, float health, float damage, float armor, int distance, bool isLive, int distanceAttackUnit, int timeStandPoint) : base(name, health, damage, armor, distance, isLive, distanceAttackUnit, timeStandPoint)
+        public Tank(Enum name, float health, float damage, float armor, int distance, bool isLive, int distanceAttackUnit, int timeStandPoint) : base(name, health, damage, armor, distance, isLive, distanceAttackUnit, timeStandPoint)
         {
             _baseDamage = Damage;
         }
 
-        public override CombatUnits Clone()
+        public override CombatUnit Clone()
         {
             return new Tank(Name, Health, Damage, Armor, Distance, IsLive, DistanceAttackUnit, TimeStandPoint);
         }
 
-        protected override void Attack(CombatUnits unit)
+        protected override void Attack(CombatUnit unit)
         {
             switch (unit.Name)
             {
-                case SAPPER:
+                case NameUnits.Сапер:
                     if (SuccessfukApplicationSkillAttack())
                         SpellAttackMeleUnit();
                     break;
-                case ARTELERIST:
+                case NameUnits.Артилерист:
                     if (SuccessfukApplicationSkillAttack())
                         SpellAttackRangeUnit();
                     break;
-                case ARNOREDVEHICLE:
+                case NameUnits.БТР:
                     if (SuccessfukApplicationSkillAttack())
                         SpellAttackMeleUnit();
                     break;
@@ -456,33 +453,33 @@ namespace Wars
         }
     }
 
-    class Artelerist : CombatUnits
+    class Artelerist : CombatUnit
     {
         private int _chanceHit = 0;
         private int _missShoot = 0;
         private int _hitShootEnemy = 2;
         private Random random = new Random();
 
-        public Artelerist(string name, float health, float damage, float armor, int distance, bool isLive, int distanceAttackUnit, int timeStandPoint) : base(name, health, damage, armor, distance, isLive, distanceAttackUnit, timeStandPoint) { }
+        public Artelerist(Enum name, float health, float damage, float armor, int distance, bool isLive, int distanceAttackUnit, int timeStandPoint) : base(name, health, damage, armor, distance, isLive, distanceAttackUnit, timeStandPoint) { }
 
-        public override CombatUnits Clone()
+        public override CombatUnit Clone()
         {
             return new Artelerist(Name, Health, Damage, Armor, Distance, IsLive, DistanceAttackUnit, TimeStandPoint);
         }
 
-        protected override void Attack(CombatUnits unit)
+        protected override void Attack(CombatUnit unit)
         {
             switch (unit.Name)
             {
-                case SAPPER:
+                case NameUnits.Сапер:
                     if (SuccessfukApplicationSkillAttack())
                         SpellAttackMeleUnit(unit);
                     break;
-                case INFANTRY:
+                case NameUnits.Пехотинец:
                     if (SuccessfukApplicationSkillAttack())
                         SpellAttackMeleUnit(unit);
                     break;
-                case TANK:
+                case NameUnits.Танк:
                     if (SuccessfukApplicationSkillAttack())
                         SpellAttackMeleUnit(unit);
                     break;
@@ -492,7 +489,7 @@ namespace Wars
             }
         }
 
-        private void SpellAttackMeleUnit(CombatUnits unit)
+        private void SpellAttackMeleUnit(CombatUnit unit)
         {
             _chanceHit = random.Next(_missShoot, _hitShootEnemy);
 
@@ -503,32 +500,32 @@ namespace Wars
         }
     }
 
-    class Infantry : CombatUnits
+    class Infantry : CombatUnit
     {
         private int _upDistanceAttack = 3;
         private int _coinUpDistanceAttack = 0;
         private int _timeStandPoint = 2;
 
-        public Infantry(string name, float health, float damage, float armor, int distance, bool isLive, int distanceAttackUnit, int timeStandPoint) : base(name, health, damage, armor, distance, isLive, distanceAttackUnit, timeStandPoint) { }
+        public Infantry(Enum name, float health, float damage, float armor, int distance, bool isLive, int distanceAttackUnit, int timeStandPoint) : base(name, health, damage, armor, distance, isLive, distanceAttackUnit, timeStandPoint) { }
 
-        public override CombatUnits Clone()
+        public override CombatUnit Clone()
         {
             return new Infantry(Name, Health, Damage, Armor, Distance, IsLive, DistanceAttackUnit, TimeStandPoint);
         }
 
-        protected override void Attack(CombatUnits unit)
+        protected override void Attack(CombatUnit unit)
         {
             switch (unit.Name)
             {
-                case SAPPER:
+                case NameUnits.Сапер:
                     if (SuccessfukApplicationSkillAttack())
                         SpellAttackMeleUnit(unit);
                     break;
-                case ARTELERIST:
+                case NameUnits.Артилерист:
                     if (SuccessfukApplicationSkillAttack())
                         SpellAttackRangeUnit(unit);
                     break;
-                case ARNOREDVEHICLE:
+                case NameUnits.БТР:
                     if (SuccessfukApplicationSkillAttack())
                         SpellAttackMeleUnit(unit);
                     break;
@@ -538,7 +535,7 @@ namespace Wars
             }
         }
 
-        private void SpellAttackMeleUnit(CombatUnits unit)
+        private void SpellAttackMeleUnit(CombatUnit unit)
         {
             if (_coinUpDistanceAttack == _upDistanceAttack)
             {
@@ -550,39 +547,39 @@ namespace Wars
             _coinUpDistanceAttack++;
         }
 
-        private void SpellAttackRangeUnit(CombatUnits unit)
+        private void SpellAttackRangeUnit(CombatUnit unit)
         {
             Console.WriteLine("Кидает гранату оглушает противника");
             unit.UpTimeStandPoint(_timeStandPoint);
         }
     }
 
-    class ArmoredVehicle : CombatUnits
+    class ArmoredVehicle : CombatUnit
     {
         private int _amountOfCoinUseSkill = 3;
         private float _buffArmor = 10;
         private int _minimumCoinUseSkill = 0;
 
-        public ArmoredVehicle(string name, float health, float damage, float armor, int distance, bool isLive, int distanceAttackUnit, int timeStandPoint) : base(name, health, damage, armor, distance, isLive, distanceAttackUnit, timeStandPoint) { }
+        public ArmoredVehicle(Enum name, float health, float damage, float armor, int distance, bool isLive, int distanceAttackUnit, int timeStandPoint) : base(name, health, damage, armor, distance, isLive, distanceAttackUnit, timeStandPoint) { }
 
-        public override CombatUnits Clone()
+        public override CombatUnit Clone()
         {
             return new ArmoredVehicle(Name, Health, Damage, Armor, Distance, IsLive, DistanceAttackUnit, TimeStandPoint);
         }
 
-        protected override void Attack(CombatUnits unit)
+        protected override void Attack(CombatUnit unit)
         {
             switch (unit.Name)
             {
-                case SAPPER:
+                case NameUnits.Сапер:
                     if (SuccessfukApplicationSkillAttack())
                         SpellAttackMeleUnit();
                     break;
-                case INFANTRY:
+                case NameUnits.Пехотинец:
                     if (SuccessfukApplicationSkillAttack())
                         SpellAttackMeleUnit();
                     break;
-                case TANK:
+                case NameUnits.Танк:
                     if (SuccessfukApplicationSkillAttack())
                         SpellAttackMeleUnit();
                     break;
@@ -603,31 +600,31 @@ namespace Wars
         }
     }
 
-    class Sapper : CombatUnits
+    class Sapper : CombatUnit
     {
         private float _bonusDamageAttack = 20;
         private float _debafResistence = 10;
 
-        public Sapper(string name, float health, float damage, float armor, int distance, bool isLive, int distanceAttackUnit, int timeStandPoint) : base(name, health, damage, armor, distance, isLive, distanceAttackUnit, timeStandPoint) { }
+        public Sapper(Enum name, float health, float damage, float armor, int distance, bool isLive, int distanceAttackUnit, int timeStandPoint) : base(name, health, damage, armor, distance, isLive, distanceAttackUnit, timeStandPoint) { }
 
-        public override CombatUnits Clone()
+        public override CombatUnit Clone()
         {
             return new Sapper(Name, Health, Damage, Armor, Distance, IsLive, DistanceAttackUnit, TimeStandPoint);
         }
 
-        protected override void Attack(CombatUnits unit)
+        protected override void Attack(CombatUnit unit)
         {
             switch (unit.Name)
             {
-                case ARNOREDVEHICLE:
+                case NameUnits.БТР:
                     if (SuccessfukApplicationSkillAttack())
                         SpellAttackMeleUnit(unit);
                     break;
-                case INFANTRY:
+                case NameUnits.Пехотинец:
                     if (SuccessfukApplicationSkillAttack())
                         SpellAttackMeleUnit(unit);
                     break;
-                case TANK:
+                case NameUnits.Танк:
                     if (SuccessfukApplicationSkillAttack())
                         SpellAttackMeleUnit(unit);
                     break;
@@ -637,7 +634,7 @@ namespace Wars
             }
         }
 
-        private void SpellAttackMeleUnit(CombatUnits unit)
+        private void SpellAttackMeleUnit(CombatUnit unit)
         {
             if (Distance == unit.DistanceAttackUnit)
             {
