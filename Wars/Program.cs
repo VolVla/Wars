@@ -77,7 +77,6 @@ namespace Wars
 
     class Squad
     {
-        public bool IsAlive = true;
         private List<Soldier> _soldiers;
         private List<Soldier> _typeSoldiers;
 
@@ -91,8 +90,11 @@ namespace Wars
                 new ThirdTypeSoldier("Солдат атакует сразу нескольких", 100 , 25, 10,3),
                 new FourthTypeSoldier("Солдат атакует сразу нескольких случайных,", 100 , 25, 10,3),
             };
+
             Create(numberSoldiers);
         }
+
+        public bool IsAlive { get; private set; }
 
         public void Attack(Squad squad)
         {
@@ -176,11 +178,11 @@ namespace Wars
 
     class Utils
     {
-        private static Random _random = new Random();
+        private static Random s_random = new Random();
 
         public Random GetRandom()
         {
-            return _random;
+            return s_random;
         }
     }
 
